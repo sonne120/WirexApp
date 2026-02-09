@@ -1,6 +1,6 @@
 # WirexApp
 
-Financial application with modular monolith architecture, CQRS, Kafka, and gRPC.
+Multi-currency payment processing platform with currency exchange, built using modular monolith architecture, CQRS, Event Sourcing, and CDC pattern.
 
 ## Architecture
 
