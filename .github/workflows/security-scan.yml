@@ -71,9 +71,9 @@ jobs:
         dockerfile:
           - path: WirexApp.Gateway/Dockerfile
             name: gateway
-          - path: WirexApp.API/Dockerfile.WriteService
+          - path: WirexApp.WriteService/Dockerfile
             name: write-service
-          - path: WirexApp.API/Dockerfile.ReadService
+          - path: WirexApp.ReadService/Dockerfile
             name: read-service
 
     steps:
