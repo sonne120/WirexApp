@@ -31,7 +31,7 @@ namespace WirexApp.Application.Payments
             _currencyExchange = currencyExchange;
         }
 
-        public async Task<Unit> Handle(PaymentCreatedCommand command, CancellationToken cancellationToken)
+        public async Task Handle(PaymentCreatedCommand command, CancellationToken cancellationToken)
         {
             var userId = new UserId(command.UserId);
             var user = await _userRepository.GetByIdAsync(userId);
@@ -65,7 +65,7 @@ namespace WirexApp.Application.Payments
 
             _paymentRepository.Save(payment);
 
-            return Unit.Value;
+            await Task.CompletedTask;
         }
     }
 }

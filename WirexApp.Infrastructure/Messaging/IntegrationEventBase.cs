@@ -1,27 +1,12 @@
-using System;
+// This file is kept for backward compatibility
+// Use WirexApp.Application.IntegrationEvents.IntegrationEventBase instead
+
+using WirexApp.Application.IntegrationEvents;
 
 namespace WirexApp.Infrastructure.Messaging
 {
-    public abstract class IntegrationEventBase : IIntegrationEvent
+    [System.Obsolete("Use WirexApp.Application.IntegrationEvents.IntegrationEventBase instead")]
+    public abstract class IntegrationEventBase : Application.IntegrationEvents.IntegrationEventBase
     {
-        public Guid EventId { get; }
-
-        public DateTime OccurredOn { get; }
-
-        public string EventType { get; }
-
-        protected IntegrationEventBase()
-        {
-            EventId = Guid.NewGuid();
-            OccurredOn = DateTime.UtcNow;
-            EventType = GetType().Name;
-        }
-
-        protected IntegrationEventBase(Guid eventId, DateTime occurredOn)
-        {
-            EventId = eventId;
-            OccurredOn = occurredOn;
-            EventType = GetType().Name;
-        }
     }
 }

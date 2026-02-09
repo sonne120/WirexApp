@@ -1,9 +1,8 @@
 using System;
-using WirexApp.Infrastructure.Messaging;
 
 namespace WirexApp.Application.Payments.IntegrationEvents
 {
-    public class PaymentCreatedIntegrationEvent : IntegrationEventBase
+    public class PaymentCreatedIntegrationEvent : Application.IntegrationEvents.IntegrationEventBase
     {
         public Guid PaymentId { get; }
 
