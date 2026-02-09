@@ -22,8 +22,20 @@ namespace WirexApp.Infrastructure.UnitOfWork
         }
 
         public async Task<Unit> Handle(T command, CancellationToken cancellationToken)
-        {          
-            return Unit.Value;
+        {
+            try
+            {
+                var result = await _decorated.Handle(command, cancellationToken);
+
+                await _unitOfWork.CommitAsync(cancellationToken);
+
+                return result;
+            }
+            catch
+            {
+                // In case of error, UnitOfWork will be disposed without committing
+                throw;
+            }
         }
     }
 }
