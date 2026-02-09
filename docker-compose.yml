@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   # ==================== Infrastructure ====================
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: wirexapp-zookeeper
@@ -62,6 +63,7 @@ services:
 
   # ==================== Application Services ====================
 
+  # Write Service - Command Side (CQRS) with gRPC
   wirexapp-write-service:
     build:
       context: .
@@ -72,9 +74,10 @@ services:
         condition: service_healthy
     ports:
       - "5001:8080"
+      - "5011:5011"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_URLS=http://+:8080;http://+:5011
       - Kafka__BootstrapServers=kafka:29092
       - Kafka__ClientId=WirexApp-WriteService
       - Kafka__GroupId=WirexApp-write-consumer-group
@@ -90,6 +93,7 @@ services:
       retries: 3
     restart: unless-stopped
 
+  # Read Service - Query Side (CQRS) with gRPC
   wirexapp-read-service:
     build:
       context: .
@@ -101,10 +105,10 @@ services:
         condition: service_healthy
     ports:
       - "5002:8080"
-      - "5003:8080"
+      - "5012:5012"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_URLS=http://+:8080;http://+:5012
       - Kafka__BootstrapServers=kafka:29092
       - Kafka__ClientId=WirexApp-ReadService
       - Kafka__GroupId=WirexApp-read-consumer-group
@@ -119,8 +123,35 @@ services:
       timeout: 10s
       retries: 3
     restart: unless-stopped
-    deploy:
-      replicas: 2
+
+  # API Gateway - Entry point (REST → gRPC)
+  wirexapp-gateway:
+    build:
+      context: .
+      dockerfile: WirexApp.Gateway/Dockerfile
+    container_name: wirexapp-gateway
+    depends_on:
+      wirexapp-write-service:
+        condition: service_healthy
+      wirexapp-read-service:
+        condition: service_healthy
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - GrpcServices__WriteService=http://wirexapp-write-service:5011
+      - GrpcServices__ReadService=http://wirexapp-read-service:5012
+    volumes:
+      - ./logs/gateway:/app/logs
+    networks:
+      - wirexapp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
 
 networks:
   wirexapp-network:

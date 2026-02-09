@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ocelot" Version="23.0.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.60.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.60.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Google.Protobuf" Version="3.25.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\payment.proto" GrpcServices="Client" />
+  </ItemGroup>
+
+</Project>

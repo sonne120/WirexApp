@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+option csharp_namespace = "WirexApp.Gateway.Grpc";
+
+package payment;
+
+// Payment Write Service (Commands)
+service PaymentWriteService {
+  rpc CreatePayment (CreatePaymentRequest) returns (CreatePaymentResponse);
+}
+
+// Payment Read Service (Queries)
+service PaymentReadService {
+  rpc GetPayment (GetPaymentRequest) returns (GetPaymentResponse);
+  rpc GetAllPayments (GetAllPaymentsRequest) returns (GetAllPaymentsResponse);
+  rpc GetPaymentsByUser (GetPaymentsByUserRequest) returns (GetPaymentsByUserResponse);
+  rpc GetPaymentStats (GetPaymentStatsRequest) returns (GetPaymentStatsResponse);
+}
+
+// Write Messages
+message CreatePaymentRequest {
+  string user_id = 1;
+  int32 source_currency = 2;
+  int32 target_currency = 3;
+  double source_value = 4;
+}
+
+message CreatePaymentResponse {
+  bool success = 1;
+  string message = 2;
+  string user_id = 3;
+}
+
+// Read Messages
+message GetPaymentRequest {
+  string payment_id = 1;
+}
+
+message GetPaymentResponse {
+  PaymentModel payment = 1;
+  bool found = 2;
+}
+
+message GetAllPaymentsRequest {
+}
+
+message GetAllPaymentsResponse {
+  repeated PaymentModel payments = 1;
+}
+
+message GetPaymentsByUserRequest {
+  string user_id = 1;
+}
+
+message GetPaymentsByUserResponse {
+  repeated PaymentModel payments = 1;
+}
+
+message GetPaymentStatsRequest {
+}
+
+message GetPaymentStatsResponse {
+  int32 total_payments = 1;
+  double total_amount = 2;
+  int32 pending_payments = 3;
+  int32 completed_payments = 4;
+  int32 failed_payments = 5;
+}
+
+// Payment Model
+message PaymentModel {
+  string payment_id = 1;
+  string user_account_id = 2;
+  string user_id = 3;
+  string user_name = 4;
+  string user_email = 5;
+  string source_currency = 6;
+  string target_currency = 7;
+  double source_value = 8;
+  double target_value = 9;
+  string status = 10;
+  string create_date = 11;
+  bool is_removed = 12;
+  double exchange_rate = 13;
+  string status_description = 14;
+}
