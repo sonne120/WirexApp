@@ -83,8 +83,16 @@ try
     app.MapControllers();
     app.MapHealthChecks("/health");
 
-    // Use Ocelot for HTTP routing (fallback)
-    await app.UseOcelot();
+    // Use Ocelot for HTTP routing (skip in Testing environment for integration tests)
+    if (app.Environment.EnvironmentName != "Testing")
+    {
+        await app.UseOcelot();
+        Log.Information("Ocelot API Gateway middleware enabled");
+    }
+    else
+    {
+        Log.Information("Ocelot skipped in Testing environment - using direct controller routing");
+    }
 
     Log.Information("API Gateway started successfully on {Urls}", string.Join(", ", app.Urls));
     app.Run();

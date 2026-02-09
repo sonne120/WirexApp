@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace WirexApp.Tests.Integration.Gateway
 {
-    // Response DTOs for integration tests
-
     public class CreatePaymentResponse
     {
         public string Message { get; set; } = string.Empty;

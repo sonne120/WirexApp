@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 namespace WirexApp.Tests.Integration.Gateway
 {
-    // Mock implementation of PaymentGatewayService for testing
     public class MockPaymentGatewayService
     {
         private readonly List<MockPayment> _payments = new();

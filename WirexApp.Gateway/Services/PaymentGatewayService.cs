@@ -27,7 +27,7 @@ namespace WirexApp.Gateway.Services
             _logger = logger;
         }
 
-        public async Task<CreatePaymentResponse> CreatePaymentAsync(
+        public virtual async Task<CreatePaymentResponse> CreatePaymentAsync(
             string userId,
             int sourceCurrency,
             int targetCurrency,
@@ -58,7 +58,7 @@ namespace WirexApp.Gateway.Services
             }
         }
 
-        public async Task<PaymentModel?> GetPaymentAsync(string paymentId)
+        public virtual async Task<PaymentModel?> GetPaymentAsync(string paymentId)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace WirexApp.Gateway.Services
             }
         }
 
-        public async Task<List<PaymentModel>> GetAllPaymentsAsync()
+        public virtual async Task<List<PaymentModel>> GetAllPaymentsAsync()
         {
             try
             {
@@ -102,7 +102,7 @@ namespace WirexApp.Gateway.Services
             }
         }
 
-        public async Task<List<PaymentModel>> GetPaymentsByUserAsync(string userId)
+        public virtual async Task<List<PaymentModel>> GetPaymentsByUserAsync(string userId)
         {
             try
             {
@@ -121,7 +121,7 @@ namespace WirexApp.Gateway.Services
             }
         }
 
-        public async Task<GetPaymentStatsResponse> GetPaymentStatsAsync()
+        public virtual async Task<GetPaymentStatsResponse> GetPaymentStatsAsync()
         {
             try
             {

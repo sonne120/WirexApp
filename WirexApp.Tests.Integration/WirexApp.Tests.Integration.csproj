@@ -27,8 +27,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WirexApp.Gateway\WirexApp.Gateway.csproj" />
-    <ProjectReference Include="..\WirexApp.WriteService\WirexApp.WriteService.csproj" />
-    <ProjectReference Include="..\WirexApp.ReadService\WirexApp.ReadService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ocelot.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
