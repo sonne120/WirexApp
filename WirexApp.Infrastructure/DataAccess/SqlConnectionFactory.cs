@@ -6,10 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace WirexApp.Infrastructure.DataAccess
 {
-    /// <summary>
-    /// SQL Server connection factory for Dapper
-    /// Manages separate read and write connections for CQRS
-    /// </summary>
     public class SqlConnectionFactory : IDbConnectionFactory
     {
         private readonly string _writeConnectionString;
@@ -19,13 +15,11 @@ namespace WirexApp.Infrastructure.DataAccess
         public SqlConnectionFactory(IConfiguration configuration, ILogger<SqlConnectionFactory> logger)
         {
             _logger = logger;
-
-            // Write connection (primary database)
+            
             _writeConnectionString = configuration.GetConnectionString("WriteConnection")
                 ?? configuration.GetConnectionString("DefaultConnection")
                 ?? throw new ArgumentException("Write connection string not found");
-
-            // Read connection (can be read replica or same as write for simplicity)
+            
             _readConnectionString = configuration.GetConnectionString("ReadConnection")
                 ?? configuration.GetConnectionString("DefaultConnection")
                 ?? throw new ArgumentException("Read connection string not found");

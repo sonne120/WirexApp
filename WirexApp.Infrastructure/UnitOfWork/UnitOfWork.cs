@@ -20,12 +20,7 @@ namespace WirexApp.Infrastructure.UnitOfWork
             try
             {
                 _logger.LogInformation("Committing transaction");
-
-                // In a real implementation with EF Core or Dapper, you would:
-                // 1. Save all changes to the database
-                // 2. Commit the transaction
-                // For now with in-memory implementation, we just return success
-
+                
                 await Task.CompletedTask;
 
                 _logger.LogInformation("Transaction committed successfully");

@@ -5,9 +5,6 @@ using WirexApp.Domain;
 
 namespace WirexApp.Infrastructure.DataAccess.Write
 {
-    /// <summary>
-    /// Base interface for write-side repositories (Command side of CQRS)
-    /// </summary>
     public interface IWriteRepository<TAggregate> where TAggregate : IAggregateRoot
     {
         Task<TAggregate> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

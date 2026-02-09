@@ -12,10 +12,6 @@ using WirexApp.Infrastructure.Messaging;
 
 namespace WirexApp.Infrastructure.DataAccess.Write
 {
-    /// <summary>
-    /// Write-side repository for Payment aggregate (Command side)
-    /// Responsible for persisting domain events and publishing CDC events to Kafka
-    /// </summary>
     public class PaymentWriteRepository : IWriteRepository<Payment>
     {
         private readonly IEventStore _eventStore;
@@ -93,15 +89,13 @@ namespace WirexApp.Infrastructure.DataAccess.Write
                         payment.PaymentId,
                         payment.DomainEvents,
                         payment.Version);
-
-                    // Publish domain events via MediatR
+                    
                     foreach (var domainEvent in payment.DomainEvents)
                     {
                         await _mediator.Publish(domainEvent, cancellationToken);
                     }
 
                     // Publish integration events to Kafka
-                    // This could be done via a domain event handler instead
                     await PublishIntegrationEventsAsync(payment, cancellationToken);
 
                     payment.MarkChangesAsCommitted();
@@ -140,12 +134,10 @@ namespace WirexApp.Infrastructure.DataAccess.Write
 
         private PaymentCDCData MapPaymentToCDCData(Payment payment)
         {
-            // Map Payment aggregate to CDC data model
-            // In production, you'd expose necessary properties from Payment aggregate
             return new PaymentCDCData
             {
                 PaymentId = payment.PaymentId,
-                // UserAccountId = payment.UserAccountId, // Would be exposed from aggregate
+                // UserAccountId = payment.UserAccountId, 
                 // UserId = payment.UserId,
                 // SourceCurrency = payment.SourceCurrency.ToString(),
                 // TargetCurrency = payment.TargetCurrency.ToString(),
