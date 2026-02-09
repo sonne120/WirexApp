@@ -6,10 +6,6 @@ using System.Threading.Tasks;
 
 namespace WirexApp.Infrastructure.DataAccess.Read
 {
-    /// <summary>
-    /// Base interface for read-side services (Query side of CQRS)
-    /// Optimized for fast reads from read models/projections
-    /// </summary>
     public interface IReadService<TReadModel> where TReadModel : class
     {
         Task<TReadModel> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

@@ -36,23 +36,23 @@ namespace WirexApp.Infrastructure.DataAccess.Write
             _inMemoryCache = new ConcurrentDictionary<Guid, Payment>();
         }
 
-        public async Task<Payment> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public Task<Payment> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             _logger.LogDebug("Loading payment aggregate {PaymentId} from event store", id);
 
-            var events = await _eventStore.GetEventsForAggregate(id);
+            var events = _eventStore.GetEventsForAggregate(id);
 
             if (!events.Any())
             {
                 _logger.LogWarning("Payment {PaymentId} not found in event store", id);
-                return null;
+                return Task.FromResult<Payment>(null);
             }
 
             var payment = new Payment(id, events);
 
             _logger.LogDebug("Payment aggregate {PaymentId} loaded with {EventCount} events", id, events.Count());
 
-            return payment;
+            return Task.FromResult(payment);
         }
 
         public void Add(Payment aggregate)
@@ -85,9 +85,9 @@ namespace WirexApp.Infrastructure.DataAccess.Write
                         payment.DomainEvents.Count, payment.PaymentId);
 
                     // Save domain events to event store
-                    await _eventStore.SaveEvents(
+                    _eventStore.SaveEvents(
                         payment.PaymentId,
-                        payment.DomainEvents,
+                        payment.GetUncommittedChanges(),
                         payment.Version);
                     
                     foreach (var domainEvent in payment.DomainEvents)

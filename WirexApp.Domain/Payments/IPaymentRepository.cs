@@ -6,12 +6,12 @@ using WirexApp.Domain.UserAccounts;
 
 namespace WirexApp.Domain.Payments
 {
-    public interface IPaymentRepository 
+    public interface IPaymentRepository
     {
-        Payment GetByIdAsync(Guid id);
+        Task<Payment?> GetByIdAsync(Guid id);
 
-        Payment GetByUserAccountAsync(UserAccount userAccount, DateTime dateTime);
+        Task<Payment?> GetByUserAccountAsync(UserAccount userAccount, DateTime dateTime);
 
-        void Save(Payment payment, int expectedVersion);
+        void Save(Payment payment, int expectedVersion = 0);
     }
 }

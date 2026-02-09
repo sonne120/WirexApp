@@ -2,10 +2,6 @@ using System;
 
 namespace WirexApp.Infrastructure.CDC.Models
 {
-    /// <summary>
-    /// CDC data model for Payment entity
-    /// This represents the data structure sent via Kafka CDC events
-    /// </summary>
     public class PaymentCDCData
     {
         public Guid PaymentId { get; set; }

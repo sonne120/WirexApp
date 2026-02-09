@@ -1,8 +1,15 @@
+using System;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Grpc.Net.ClientFactory;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Serilog;
 using Serilog.Events;
 using WirexApp.Gateway.Services;
+using WirexApp.Gateway.Grpc;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -82,7 +89,7 @@ try
     Log.Information("API Gateway started successfully on {Urls}", string.Join(", ", app.Urls));
     app.Run();
 }
-catch (Exception ex)
+catch (System.Exception ex)
 {
     Log.Fatal(ex, "API Gateway terminated unexpectedly");
 }
@@ -90,3 +97,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Make the implicit Program class public for WebApplicationFactory
+public partial class Program { }

@@ -6,8 +6,11 @@ using MediatR;
 
 namespace WirexApp.Infrastructure.Processing
 {
+    // TODO: Implement CompositionRoot or refactor to use IServiceProvider
     public static class CommandsExecutor
     {
+        // Commented out until CompositionRoot is implemented
+        /*
         public static async Task Execute(ICommand command)
         {
             using (var scope = CompositionRoot.BeginLifetimeScope())
@@ -25,5 +28,6 @@ namespace WirexApp.Infrastructure.Processing
                 return await mediator.Send(command);
             }
         }
+        */
     }
 }

@@ -9,7 +9,7 @@ using WirexApp.Infrastructure.DataAccess.Read;
 
 namespace WirexApp.ReadService.Grpc
 {
-    public class PaymentReadGrpcService : PaymentReadService.PaymentReadServiceBase
+    public class PaymentReadGrpcService : Gateway.Grpc.PaymentReadService.PaymentReadServiceBase
     {
         private readonly IReadService<PaymentReadModel> _paymentReadService;
         private readonly ILogger<PaymentReadGrpcService> _logger;

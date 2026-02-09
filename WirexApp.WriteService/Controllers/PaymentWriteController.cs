@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MediatR;
 using WirexApp.Application.Payments;
+using WirexApp.Domain;
 
 namespace WirexApp.WriteService.Controllers
 {
@@ -34,8 +35,8 @@ namespace WirexApp.WriteService.Controllers
 
             var command = new PaymentCreatedCommand(
                 userId,
-                request.SourceCurrency,
-                request.TargetCurrency,
+                (Currency)request.SourceCurrency,
+                (Currency)request.TargetCurrency,
                 request.SourceValue);
 
             await _mediator.Send(command);

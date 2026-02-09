@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MediatR;
 using System.Net;
+using WirexApp.API.Models;
 using WirexApp.Application.Payments;
 using WirexApp.Domain;
 

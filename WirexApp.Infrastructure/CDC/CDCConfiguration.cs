@@ -2,9 +2,6 @@ using System.Collections.Generic;
 
 namespace WirexApp.Infrastructure.CDC
 {
-    /// <summary>
-    /// Configuration for Change Data Capture (CDC)
-    /// </summary>
     public class CDCConfiguration
     {
         public bool Enabled { get; set; } = true;

@@ -50,8 +50,7 @@ namespace WirexApp.Application.Payments
 
             var sourceValue = MoneyValue.Of(command.SourceValue, command.SourceCurrency.ToString());
 
-            var conversionRates = _currencyExchange.GetConversionRates(command.SourceCurrency)
-                .ToList();
+            var conversionRates = _currencyExchange.GetConversionRates();
 
             var payment = new Payment(
                 sourceValue,

@@ -24,20 +24,21 @@ namespace WirexApp.Infrastructure.DataAccess
         }
 
 
-        public Payment GetByIdAsync(Guid id)
+        public Task<Payment?> GetByIdAsync(Guid id)
         {
             var events = _eventStore.GetEventsForAggregate(id);
-            return new Payment(id, events);
+            var payment = new Payment(id, events);
+            return Task.FromResult<Payment?>(payment);
         }
 
-        public Payment GetByUserAccountAsync(UserAccount userAccount, DateTime dateTime)
+        public Task<Payment?> GetByUserAccountAsync(UserAccount userAccount, DateTime dateTime)
         {
-            throw new NotImplementedException();
+            return Task.FromResult<Payment?>(null);
         }
 
-        public void Save(Payment payment, int expectedVersion)
+        public void Save(Payment payment, int expectedVersion = 0)
         {
-            //_eventStore.SaveEvents(payment.PaymentId, payment.GetUncommittedChanges(), expectedVersion);
+            _eventStore.SaveEvents(payment.PaymentId, payment.GetUncommittedChanges(), expectedVersion);
             payment.MarkChangesAsCommitted();
         }
 

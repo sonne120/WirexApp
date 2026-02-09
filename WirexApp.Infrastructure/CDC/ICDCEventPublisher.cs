@@ -4,10 +4,6 @@ using WirexApp.Infrastructure.CDC.Events;
 
 namespace WirexApp.Infrastructure.CDC
 {
-    /// <summary>
-    /// Change Data Capture (CDC) Event Publisher
-    /// Publishes data changes from write-side to Kafka for read-side consumption
-    /// </summary>
     public interface ICDCEventPublisher
     {
         Task PublishAsync<TData>(CDCEvent<TData> cdcEvent, CancellationToken cancellationToken = default)

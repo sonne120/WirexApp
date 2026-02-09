@@ -7,16 +7,12 @@ using WirexApp.Infrastructure.Messaging;
 
 namespace WirexApp.Infrastructure.CDC
 {
-    /// <summary>
-    /// CDC Event Publisher implementation
-    /// Publishes change events to Kafka for read-side consumption
-    /// </summary>
     public class CDCEventPublisher : ICDCEventPublisher
     {
         private readonly IMessageBus _messageBus;
         private readonly ILogger<CDCEventPublisher> _logger;
 
-        // Kafka topic naming convention: cdc.{entity-type}
+        // Kafka topic  cdc.{entity-type}
         private const string TopicPrefix = "cdc.";
 
         public CDCEventPublisher(IMessageBus messageBus, ILogger<CDCEventPublisher> logger)

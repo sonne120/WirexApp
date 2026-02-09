@@ -11,11 +11,6 @@ using WirexApp.Application.Payments.ReadModels;
 
 namespace WirexApp.Infrastructure.DataAccess.Read
 {
-    /// <summary>
-    /// Read service for Payment queries (Query side of CQRS)
-    /// Uses in-memory cache for fast reads
-    /// In production, this would read from a separate read database (e.g., MongoDB, Elasticsearch)
-    /// </summary>
     public class PaymentReadService : IReadService<PaymentReadModel>
     {
         private readonly IMemoryCache _cache;
@@ -44,10 +39,9 @@ namespace WirexApp.Infrastructure.DataAccess.Read
                 return cachedModel;
             }
 
-            // Get from in-memory storage (in production, this would be a read database query)
+            // Get from in-memory storage
             if (_readModels.TryGetValue(id, out var model))
             {
-                // Cache for future requests
                 _cache.Set(cacheKey, model, TimeSpan.FromMinutes(CacheExpirationMinutes));
                 return model;
             }
@@ -102,24 +96,17 @@ namespace WirexApp.Infrastructure.DataAccess.Read
             var compiledPredicate = predicate.Compile();
             return _readModels.Values.Count(compiledPredicate);
         }
-
-        /// <summary>
-        /// Internal method to update read model (called by projection event handlers)
-        /// </summary>
+        
         public void UpdateReadModel(PaymentReadModel readModel)
         {
             _logger.LogDebug("Updating payment read model {PaymentId}", readModel.PaymentId);
 
             _readModels.AddOrUpdate(readModel.PaymentId, readModel, (key, existing) => readModel);
-
-            // Invalidate cache
+            
             var cacheKey = $"{CacheKeyPrefix}{readModel.PaymentId}";
             _cache.Remove(cacheKey);
         }
-
-        /// <summary>
-        /// Internal method to remove read model
-        /// </summary>
+        
         public void RemoveReadModel(Guid paymentId)
         {
             _logger.LogDebug("Removing payment read model {PaymentId}", paymentId);

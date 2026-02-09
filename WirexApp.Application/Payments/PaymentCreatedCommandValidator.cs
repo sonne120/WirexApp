@@ -24,6 +24,10 @@ namespace WirexApp.Application.Payments
             RuleFor(x => x.TargetCurrency)
                 .IsInEnum()
                 .WithMessage("Invalid target currency");
+
+            RuleFor(x => x)
+                .Must(x => x.SourceCurrency != x.TargetCurrency)
+                .WithMessage("Source and target currencies must be different");
         }
     }
 }

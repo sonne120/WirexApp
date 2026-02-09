@@ -15,7 +15,7 @@ namespace WirexApp.ReadService.Controllers
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/payments")]
-    [ResponseCache(Duration = 60)] // Cache responses for 60 seconds
+    [ResponseCache(Duration = 60)] 
     public class PaymentReadController : ControllerBase
     {
         private readonly IReadService<PaymentReadModel> _paymentReadService;

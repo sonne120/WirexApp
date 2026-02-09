@@ -15,6 +15,11 @@ namespace WirexApp.Domain
 
         public int Version => _version;
 
+        public IEnumerable<DomainEventBase> GetUncommittedChanges()
+        {
+            return _domainEvents.OfType<DomainEventBase>();
+        }
+
         protected void AddDomainEvent(IDomainEvent domainEvent)
         {
             _domainEvents.Add(domainEvent);
