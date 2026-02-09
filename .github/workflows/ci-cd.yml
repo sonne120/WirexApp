@@ -44,12 +44,12 @@ jobs:
         dotnet build WirexApp.ReadService/WirexApp.ReadService.csproj --configuration Release --no-restore
         dotnet build WirexApp.Gateway/WirexApp.Gateway.csproj --configuration Release --no-restore
 
-    - name: Run tests
+    - name: Run Unit Tests
       run: |
-        if [ -d "WirexApp.Tests" ]; then
-          dotnet test WirexApp.Tests/WirexApp.Tests.csproj --configuration Release --no-build --verbosity normal
+        if [ -d "WirexApp.Tests.Unit" ]; then
+          dotnet test WirexApp.Tests.Unit/WirexApp.Tests.Unit.csproj --configuration Release --no-build --verbosity normal --logger "console;verbosity=detailed"
         else
-          echo "No tests found, skipping test execution"
+          echo "No unit tests found, skipping test execution"
         fi
 
   build-docker-images:
@@ -109,7 +109,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./WirexApp.API/Dockerfile.WriteService
+        file: ./WirexApp.WriteService/Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
@@ -121,7 +121,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./WirexApp.API/Dockerfile.ReadService
+        file: ./WirexApp.ReadService/Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
