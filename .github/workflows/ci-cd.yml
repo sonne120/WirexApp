@@ -1,0 +1,176 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: |
+        dotnet restore WirexApp.Domain/WirexApp.Domain.csproj
+        dotnet restore WirexApp.Application/WirexApp.Application.csproj
+        dotnet restore WirexApp.Infrastructure/WirexApp.Infrastructure.csproj
+        dotnet restore WirexApp.WriteService/WirexApp.WriteService.csproj
+        dotnet restore WirexApp.ReadService/WirexApp.ReadService.csproj
+        dotnet restore WirexApp.Gateway/WirexApp.Gateway.csproj
+
+    - name: Build solution
+      run: |
+        dotnet build WirexApp.Domain/WirexApp.Domain.csproj --configuration Release --no-restore
+        dotnet build WirexApp.Application/WirexApp.Application.csproj --configuration Release --no-restore
+        dotnet build WirexApp.Infrastructure/WirexApp.Infrastructure.csproj --configuration Release --no-restore
+        dotnet build WirexApp.WriteService/WirexApp.WriteService.csproj --configuration Release --no-restore
+        dotnet build WirexApp.ReadService/WirexApp.ReadService.csproj --configuration Release --no-restore
+        dotnet build WirexApp.Gateway/WirexApp.Gateway.csproj --configuration Release --no-restore
+
+    - name: Run tests
+      run: |
+        if [ -d "WirexApp.Tests" ]; then
+          dotnet test WirexApp.Tests/WirexApp.Tests.csproj --configuration Release --no-build --verbosity normal
+        else
+          echo "No tests found, skipping test execution"
+        fi
+
+  build-docker-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service: [gateway, write-service, read-service]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata for Docker
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image - Gateway
+      if: matrix.service == 'gateway'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./WirexApp.Gateway/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push Docker image - Write Service
+      if: matrix.service == 'write-service'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./WirexApp.API/Dockerfile.WriteService
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push Docker image - Read Service
+      if: matrix.service == 'read-service'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./WirexApp.API/Dockerfile.ReadService
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Environment
+    runs-on: ubuntu-latest
+    needs: build-docker-images
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    environment:
+      name: production
+      url: https://your-app-url.com
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.DEPLOY_HOST }}
+        username: ${{ secrets.DEPLOY_USER }}
+        key: ${{ secrets.DEPLOY_SSH_KEY }}
+        script: |
+          cd /opt/wirexapp
+
+          # Pull latest images
+          docker-compose pull
+
+          # Stop and remove old containers
+          docker-compose down
+
+          # Start new containers
+          docker-compose up -d
+
+          # Clean up old images
+          docker image prune -af
+
+          # Check health
+          sleep 10
+          curl -f http://localhost:5000/health || exit 1
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Deployment successful"
+        else
+          echo "❌ Deployment failed"
+        fi

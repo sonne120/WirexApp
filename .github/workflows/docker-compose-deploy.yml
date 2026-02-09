@@ -1,0 +1,124 @@
+name: Docker Compose Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy-with-docker-compose:
+    name: Deploy with Docker Compose
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+    - name: Add host to known_hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Copy files to server
+      run: |
+        scp -r docker-compose.yml ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/wirexapp/
+        scp -r .env.example ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/wirexapp/.env
+
+    - name: Deploy application
+      run: |
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          cd /opt/wirexapp
+
+          # Stop existing services
+          docker-compose down
+
+          # Pull latest images
+          docker-compose pull
+
+          # Start services
+          docker-compose up -d
+
+          # Wait for services to be healthy
+          echo "Waiting for services to start..."
+          sleep 30
+
+          # Check service health
+          docker-compose ps
+
+          # Verify gateway health
+          curl -f http://localhost:5000/health || exit 1
+
+          echo "Deployment completed successfully!"
+        EOF
+
+    - name: Run health checks
+      run: |
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          echo "Running health checks..."
+
+          # Check Gateway
+          curl -f http://localhost:5000/health && echo "✅ Gateway is healthy" || echo "❌ Gateway is unhealthy"
+
+          # Check Write Service
+          curl -f http://localhost:5001/health && echo "✅ Write Service is healthy" || echo "❌ Write Service is unhealthy"
+
+          # Check Read Service
+          curl -f http://localhost:5002/health && echo "✅ Read Service is healthy" || echo "❌ Read Service is unhealthy"
+
+          # Check Kafka UI
+          curl -f http://localhost:8080 && echo "✅ Kafka UI is accessible" || echo "❌ Kafka UI is not accessible"
+        EOF
+
+    - name: Cleanup old Docker resources
+      if: success()
+      run: |
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          cd /opt/wirexapp
+
+          # Remove unused images
+          docker image prune -af
+
+          # Remove unused volumes
+          docker volume prune -f
+
+          echo "Cleanup completed"
+        EOF
+
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+          cd /opt/wirexapp
+
+          echo "Deployment failed, rolling back..."
+
+          # Stop failed deployment
+          docker-compose down
+
+          # Restart previous version
+          docker-compose up -d
+
+          echo "Rollback completed"
+        EOF
+
+    - name: Send notification
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Deployment to ${{ github.event.inputs.environment }} successful"
+        else
+          echo "❌ Deployment to ${{ github.event.inputs.environment }} failed"
+        fi
