@@ -34,6 +34,7 @@ jobs:
         dotnet restore WirexApp.WriteService/WirexApp.WriteService.csproj
         dotnet restore WirexApp.ReadService/WirexApp.ReadService.csproj
         dotnet restore WirexApp.Gateway/WirexApp.Gateway.csproj
+        dotnet restore WirexApp.Tests.Unit/WirexApp.Tests.Unit.csproj
 
     - name: Build solution
       run: |
@@ -43,14 +44,11 @@ jobs:
         dotnet build WirexApp.WriteService/WirexApp.WriteService.csproj --configuration Release --no-restore
         dotnet build WirexApp.ReadService/WirexApp.ReadService.csproj --configuration Release --no-restore
         dotnet build WirexApp.Gateway/WirexApp.Gateway.csproj --configuration Release --no-restore
+        dotnet build WirexApp.Tests.Unit/WirexApp.Tests.Unit.csproj --configuration Release --no-restore
 
     - name: Run Unit Tests
       run: |
-        if [ -d "WirexApp.Tests.Unit" ]; then
-          dotnet test WirexApp.Tests.Unit/WirexApp.Tests.Unit.csproj --configuration Release --no-build --verbosity normal --logger "console;verbosity=detailed"
-        else
-          echo "No unit tests found, skipping test execution"
-        fi
+        dotnet test WirexApp.Tests.Unit/WirexApp.Tests.Unit.csproj --configuration Release --no-build --verbosity normal --logger "console;verbosity=detailed"
 
   build-docker-images:
     name: Build Docker Images
