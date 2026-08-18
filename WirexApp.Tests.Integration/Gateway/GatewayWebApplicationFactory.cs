@@ -47,10 +47,6 @@ namespace WirexApp.Tests.Integration.Gateway
         }
     }
 
-    /// <summary>
-    /// Test implementation of PaymentGatewayService that provides in-memory functionality
-    /// without requiring actual gRPC services
-    /// </summary>
     public class TestPaymentGatewayService : PaymentGatewayService
     {
         private readonly List<GrpcTypes.PaymentModel> _payments = new();

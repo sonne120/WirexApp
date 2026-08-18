@@ -27,6 +27,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WirexApp.Gateway\WirexApp.Gateway.csproj" />
+    <ProjectReference Include="..\WirexApp.ReadService\WirexApp.ReadService.csproj" />
+    <ProjectReference Include="..\WirexApp.WriteService\WirexApp.WriteService.csproj" />
   </ItemGroup>
 
   <ItemGroup>

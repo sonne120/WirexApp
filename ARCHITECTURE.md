@@ -150,81 +150,51 @@ graph LR
 
 ## Component Diagram
 
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        Mobile[Mobile App]
-        Web[Web App]
-        API_Client[API Client]
-    end
+```
+DATA FLOW
 
-    subgraph "Gateway Layer"
-        Gateway[API Gateway<br/>Ocelot]
-        GatewayController[REST Controllers]
-        GatewayService[Gateway Service]
-        gRPCClient[gRPC Clients]
-    end
-
-    subgraph "Write Service"
-        WriteController[Write gRPC Service]
-        WriteMediator[MediatR]
-        CommandHandler[Command Handlers]
-        WriteRepo[Write Repository]
-        EventStoreDB[(Event Store)]
-        OutboxRepo[Outbox Repository]
-        OutboxDB[(Outbox DB)]
-        OutboxProc[Outbox Processor]
-    end
-
-    subgraph "Read Service"
-        ReadController[Read gRPC Service]
-        ReadMediator[MediatR]
-        QueryHandler[Query Handlers]
-        ReadRepo[Read Service]
-        CacheLayer[Memory Cache]
-        ReadDB[(Read Database)]
-        CDCConsumer[CDC Consumer]
-    end
-
-    subgraph "Infrastructure"
-        Kafka[Apache Kafka]
-        Zookeeper[Zookeeper]
-        KafkaUI[Kafka UI]
-    end
-
-    Mobile --> Gateway
-    Web --> Gateway
-    API_Client --> Gateway
-    Gateway --> GatewayController
-    GatewayController --> GatewayService
-    GatewayService --> gRPCClient
-
-    gRPCClient -->|gRPC| WriteController
-    WriteController --> WriteMediator
-    WriteMediator --> CommandHandler
-    CommandHandler --> WriteRepo
-    WriteRepo --> EventStoreDB
-    WriteRepo --> OutboxRepo
-    OutboxRepo --> OutboxDB
-    OutboxProc --> OutboxDB
-    OutboxProc --> Kafka
-
-    gRPCClient -->|gRPC| ReadController
-    ReadController --> ReadMediator
-    ReadMediator --> QueryHandler
-    QueryHandler --> ReadRepo
-    ReadRepo --> CacheLayer
-    ReadRepo --> ReadDB
-    Kafka --> CDCConsumer
-    CDCConsumer --> ReadDB
-
-    Kafka --- Zookeeper
-    Kafka --- KafkaUI
-
-    style Gateway fill:#fff4e1
-    style WriteController fill:#ffe1e1
-    style ReadController fill:#e1ffe1
-    style Kafka fill:#f0e1ff
+        ┌──────────────────┐   HTTP/REST Request
+        │  External Client │ ─────────────────────────┐
+        └──────────────────┘                          │
+                                                      ▼
+                                                ┌──────────────┐
+                                                │  API Gateway │  (Ocelot :5000)
+                                                │ (REST ↔ gRPC)├──────────────────┐
+                                                └──────┬───────┘                  │
+                                                       │                          │
+  ═══ WRITE PATH (Command) ═══                         │ gRPC                     │ gRPC  ═══ READ PATH (Query) ═══
+                                                       ▼                          ▼
+                                                ┌────────────────┐         ┌──────────────────┐
+                                                │  WriteService  │         │   ReadService    │
+                                                │ (:5001, gRPC 5011)         │ (:5002, gRPC 5012)│
+                                                └───────┬────────┘         └────┬──────────┬───┘
+                                                        │ tx insert             │          │
+                              ┌─────────────────────────┴──────────────┐        │          │ query
+                              │                                        │        ▼          ▼
+                      ┌───────────────┐                          ┌───────────┐ ┌───────────┐ ┌──────────────────┐
+                      │  Event Store  │                          │ Outbox DB │ │   Cache   │ │ Read Repository  │
+                      │ (Write Repo)  │                          │(durable Q)│ │(in-memory)│ │ (Optimized Views)│
+                      └───────────────┘                          └─────┬─────┘ └───────────┘ └──────────┬───────┘
+                                                                       │ poll                         │
+                                                                       ▼                              │
+                                                              ┌──────────────────┐                    │
+                                                              │ Outbox Processor │                    │
+                                                              │ (Background Svc) │                    │
+                                                              └────────┬─────────┘                    │
+                                                                       │ publish                      │
+                                                                       ▼                              │
+                                                                ┌───────────┐                         │
+  ═══ READ PATH (CDC Sync) ═══                                  │   Kafka   │                         │
+                                                                │ (:9092)   │                         │
+                                                                └─────┬─────┘                         │
+                                                                      │ consume                       │
+                                                                      ▼                               │
+                                                              ┌──────────────────┐                    │
+                                                              │   CDC Consumer   │                    │
+                                                              │ (Background Svc) │                    │
+                                                              └────────┬─────────┘                    │
+                                                                       │ update                       │
+                                                                       └──────────────────────────────┘
 ```
 
 ## Data Flow

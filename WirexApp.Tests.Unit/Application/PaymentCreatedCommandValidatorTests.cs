@@ -17,7 +17,6 @@ namespace WirexApp.Tests.Unit.Application
         [Fact]
         public void Validate_ShouldPass_WhenCommandIsValid()
         {
-            // Arrange
             var command = new PaymentCreatedCommand(
                 Guid.NewGuid(),
                 Currency.USD,
@@ -25,17 +24,15 @@ namespace WirexApp.Tests.Unit.Application
                 100m
             );
 
-            // Act
             var result = _validator.Validate(command);
 
-            // Assert
             result.IsValid.Should().BeTrue();
         }
 
         [Fact]
         public void Validate_ShouldFail_WhenUserIdIsEmpty()
         {
-            // Arrange
+    
             var command = new PaymentCreatedCommand(
                 Guid.Empty,
                 Currency.USD,
@@ -43,10 +40,9 @@ namespace WirexApp.Tests.Unit.Application
                 100m
             );
 
-            // Act
+  
             var result = _validator.Validate(command);
 
-            // Assert
             result.IsValid.Should().BeFalse();
             result.Errors.Should().Contain(e => e.PropertyName == "UserId");
         }
@@ -54,7 +50,6 @@ namespace WirexApp.Tests.Unit.Application
         [Fact]
         public void Validate_ShouldFail_WhenSourceValueIsNegative()
         {
-            // Arrange
             var command = new PaymentCreatedCommand(
                 Guid.NewGuid(),
                 Currency.USD,
@@ -62,10 +57,8 @@ namespace WirexApp.Tests.Unit.Application
                 -10m
             );
 
-            // Act
             var result = _validator.Validate(command);
 
-            // Assert
             result.IsValid.Should().BeFalse();
             result.Errors.Should().Contain(e => e.PropertyName == "SourceValue");
         }
@@ -73,18 +66,15 @@ namespace WirexApp.Tests.Unit.Application
         [Fact]
         public void Validate_ShouldFail_WhenSourceValueIsZero()
         {
-            // Arrange
+
             var command = new PaymentCreatedCommand(
                 Guid.NewGuid(),
                 Currency.USD,
                 Currency.EUR,
                 0m
             );
-
-            // Act
             var result = _validator.Validate(command);
 
-            // Assert
             result.IsValid.Should().BeFalse();
             result.Errors.Should().Contain(e => e.PropertyName == "SourceValue");
         }
@@ -92,22 +82,50 @@ namespace WirexApp.Tests.Unit.Application
         [Fact]
         public void Validate_ShouldFail_WhenSourceAndTargetCurrenciesAreSame()
         {
-            // Arrange
             var command = new PaymentCreatedCommand(
                 Guid.NewGuid(),
                 Currency.USD,
-                Currency.USD, // Same as source
+                Currency.USD, 
                 100m
             );
 
-            // Act
             var result = _validator.Validate(command);
 
-            // Assert
             result.IsValid.Should().BeFalse();
             result.Errors.Should().Contain(e => 
                 e.ErrorMessage.Contains("same") || 
                 e.ErrorMessage.Contains("different"));
+        }
+
+        [Fact]
+        public void Validate_ShouldFail_WhenSourceValueIsTooLarge()
+        {
+            var command = new PaymentCreatedCommand(
+                Guid.NewGuid(),
+                Currency.USD,
+                Currency.EUR,
+                1000001m
+            );
+
+            var result = _validator.Validate(command);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.PropertyName == "SourceValue");
+        }
+
+        [Fact]
+        public void Validate_ShouldPass_WhenSourceValueIsAtTheLimit()
+        {
+            var command = new PaymentCreatedCommand(
+                Guid.NewGuid(),
+                Currency.USD,
+                Currency.EUR,
+                1000000m
+            );
+
+            var result = _validator.Validate(command);
+
+            result.IsValid.Should().BeTrue();
         }
     }
 }

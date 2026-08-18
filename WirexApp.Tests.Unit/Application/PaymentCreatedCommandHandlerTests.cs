@@ -34,9 +34,32 @@ namespace WirexApp.Tests.Unit.Application
         }
 
         [Fact]
+        public void Constructor_ShouldThrowArgumentNullException_WhenPaymentRepositoryIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => new PaymentCreatedCommandHandler(null, _userAccountRepositoryMock.Object, _userRepositoryMock.Object, _currencyExchangeMock.Object));
+        }
+
+        [Fact]
+        public void Constructor_ShouldThrowArgumentNullException_WhenUserAccountRepositoryIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => new PaymentCreatedCommandHandler(_paymentRepositoryMock.Object, null, _userRepositoryMock.Object, _currencyExchangeMock.Object));
+        }
+
+        [Fact]
+        public void Constructor_ShouldThrowArgumentNullException_WhenUserRepositoryIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => new PaymentCreatedCommandHandler(_paymentRepositoryMock.Object, _userAccountRepositoryMock.Object, null, _currencyExchangeMock.Object));
+        }
+
+        [Fact]
+        public void Constructor_ShouldThrowArgumentNullException_WhenCurrencyExchangeIsNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => new PaymentCreatedCommandHandler(_paymentRepositoryMock.Object, _userAccountRepositoryMock.Object, _userRepositoryMock.Object, null));
+        }
+
+        [Fact]
         public async Task Handle_ShouldThrowException_WhenUserNotFound()
         {
-            // Arrange
             var command = new PaymentCreatedCommand(
                 Guid.NewGuid(),
                 Currency.USD,
@@ -48,10 +71,8 @@ namespace WirexApp.Tests.Unit.Application
                 .Setup(x => x.GetByIdAsync(It.IsAny<UserId>()))
                 .ReturnsAsync((User?)null);
 
-            // Act
             var act = async () => await _handler.Handle(command, CancellationToken.None);
 
-            // Assert
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("*not found*");
         }
@@ -59,7 +80,6 @@ namespace WirexApp.Tests.Unit.Application
         [Fact]
         public async Task Handle_ShouldThrowException_WhenUserAccountNotFound()
         {
-            // Arrange
             var userId = Guid.NewGuid();
             var command = new PaymentCreatedCommand(
                 userId,
@@ -78,10 +98,8 @@ namespace WirexApp.Tests.Unit.Application
                 .Setup(x => x.GetByUserIdAsync(It.IsAny<UserId>()))
                 .ReturnsAsync((UserAccount?)null);
 
-            // Act
             var act = async () => await _handler.Handle(command, CancellationToken.None);
 
-            // Assert
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("*not found*");
         }
@@ -89,7 +107,6 @@ namespace WirexApp.Tests.Unit.Application
         [Fact]
         public async Task Handle_ShouldCreatePayment_WhenValidCommand()
         {
-            // Arrange
             var userId = Guid.NewGuid();
             var command = new PaymentCreatedCommand(
                 userId,
@@ -121,14 +138,46 @@ namespace WirexApp.Tests.Unit.Application
                 .Setup(x => x.GetConversionRates())
                 .Returns(conversionRates);
 
-            // Act
             await _handler.Handle(command, CancellationToken.None);
 
-            // Assert
             _paymentRepositoryMock.Verify(
                 x => x.Save(It.IsAny<Payment>(), It.IsAny<int>()),
                 Times.Once
             );
+        }
+
+        [Fact]
+        public async Task Handle_ShouldThrowException_WhenNoConversionRateFound()
+        {
+            var userId = Guid.NewGuid();
+            var command = new PaymentCreatedCommand(
+                userId,
+                Currency.USD,
+                Currency.EUR,
+                100m
+            );
+
+            var user = new User("Test", "User", "123 Main St", "test@example.com");
+            var userAccount = new UserAccount(
+                new UserId(userId),
+                Currency.USD
+            );
+
+            _userRepositoryMock
+                .Setup(x => x.GetByIdAsync(It.IsAny<UserId>()))
+                .ReturnsAsync(user);
+
+            _userAccountRepositoryMock
+                .Setup(x => x.GetByUserIdAsync(It.IsAny<UserId>()))
+                .ReturnsAsync(userAccount);
+
+            _currencyExchangeMock
+                .Setup(x => x.GetConversionRates())
+                .Returns(new List<ConversionRate>());
+
+            var act = async () => await _handler.Handle(command, CancellationToken.None);
+
+            await act.Should().ThrowAsync<InvalidOperationException>();
         }
     }
 }

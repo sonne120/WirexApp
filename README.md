@@ -4,66 +4,51 @@ Multi-currency payment processing platform with currency exchange, built using m
 
 ## Architecture
 
-```mermaid
-graph TB
-    subgraph "External Clients"
-        Client[HTTP/REST Client]
-    end
+```
+DATA FLOW
 
-    subgraph "API Gateway Layer - Port 5000"
-        Gateway[Ocelot API Gateway<br/>REST API Endpoints]
-    end
-
-    subgraph "Write Side - CQRS Command"
-        WriteService[Write Service<br/>Port 5001 HTTP<br/>Port 5011 gRPC]
-        WriteRepo[(Write Repository<br/>Event Store)]
-        OutboxDB[(Outbox Pattern<br/>Transactional)]
-        OutboxProcessor[Outbox Processor<br/>Background Service]
-    end
-
-    subgraph "Read Side - CQRS Query"
-        ReadService[Read Service<br/>Port 5002 HTTP<br/>Port 5012 gRPC]
-        ReadRepo[(Read Repository<br/>Optimized Views)]
-        Cache[Memory Cache<br/>Fast Queries]
-    end
-
-    subgraph "Event-Driven Infrastructure"
-        Kafka[Apache Kafka<br/>Port 9092]
-        KafkaUI[Kafka UI<br/>Port 8080]
-        CDC[CDC Events<br/>Topic: cdc.payment]
-        CDCConsumer[CDC Consumer<br/>Background Service]
-    end
-
-    subgraph "Infrastructure Services"
-        Zookeeper[Zookeeper<br/>Kafka Coordination]
-    end
-
-    Client -->|HTTP/REST| Gateway
-    Gateway -->|gRPC| WriteService
-    Gateway -->|gRPC| ReadService
-
-    WriteService -->|Save Events| WriteRepo
-    WriteService -->|Store CDC| OutboxDB
-    OutboxProcessor -->|Poll Every 5s| OutboxDB
-    OutboxProcessor -->|Publish| CDC
-
-    CDC --> Kafka
-    Kafka --> CDCConsumer
-    CDCConsumer -->|Update| ReadRepo
-
-    ReadService --> ReadRepo
-    ReadService --> Cache
-
-    Kafka --- KafkaUI
-    Kafka --- Zookeeper
-
-    style Client fill:#e1f5ff
-    style Gateway fill:#fff4e1
-    style WriteService fill:#ffe1e1
-    style ReadService fill:#e1ffe1
-    style Kafka fill:#f0e1ff
-    style OutboxProcessor fill:#ffe1f0
-    style CDCConsumer fill:#e1fff0
+        ┌──────────────────┐   HTTP/REST Request
+        │  External Client │ ─────────────────────────┐
+        └──────────────────┘                          │
+                                                      ▼
+                                                ┌──────────────┐
+                                                │  API Gateway │  (Ocelot :5000)
+                                                │ (REST ↔ gRPC)├──────────────────┐
+                                                └──────┬───────┘                  │
+                                                       │                          │
+  ═══ WRITE PATH (Command) ═══                         │ gRPC                     │ gRPC  ═══ READ PATH (Query) ═══
+                                                       ▼                          ▼
+                                                ┌────────────────┐         ┌──────────────────┐
+                                                │  WriteService  │         │   ReadService    │
+                                                │ (:5001, gRPC 5011)         │ (:5002, gRPC 5012)│
+                                                └───────┬────────┘         └────┬──────────┬───┘
+                                                        │ tx insert             │          │
+                              ┌─────────────────────────┴──────────────┐        │          │ query
+                              │                                        │        ▼          ▼
+                      ┌───────────────┐                          ┌───────────┐ ┌───────────┐ ┌──────────────────┐
+                      │  Event Store  │                          │ Outbox DB │ │   Cache   │ │ Read Repository  │
+                      │ (Write Repo)  │                          │(durable Q)│ │(in-memory)│ │ (Optimized Views)│
+                      └───────────────┘                          └─────┬─────┘ └───────────┘ └──────────┬───────┘
+                                                                       │ poll                         │
+                                                                       ▼                              │
+                                                              ┌──────────────────┐                    │
+                                                              │ Outbox Processor │                    │
+                                                              │ (Background Svc) │                    │
+                                                              └────────┬─────────┘                    │
+                                                                       │ publish                      │
+                                                                       ▼                              │
+                                                                ┌───────────┐                         │
+  ═══ READ PATH (CDC Sync) ═══                                  │   Kafka   │                         │
+                                                                │ (:9092)   │                         │
+                                                                └─────┬─────┘                         │
+                                                                      │ consume                       │
+                                                                      ▼                               │
+                                                              ┌──────────────────┐                    │
+                                                              │   CDC Consumer   │                    │
+                                                              │ (Background Svc) │                    │
+                                                              └────────┬─────────┘                    │
+                                                                       │ update                       │
+                                                                       └──────────────────────────────┘
 ```
 
 ### Architecture Overview

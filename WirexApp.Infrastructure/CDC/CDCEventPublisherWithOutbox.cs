@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WirexApp.Infrastructure.CDC.Events;
 using WirexApp.Infrastructure.Outbox;
@@ -12,15 +13,16 @@ namespace WirexApp.Infrastructure.CDC
     {
         private readonly IOutboxRepository _outboxRepository;
         private readonly ILogger<CDCEventPublisherWithOutbox> _logger;
-
-        private const string TopicPrefix = "cdc.";
+        private readonly CDCConfiguration _cdcConfiguration;
 
         public CDCEventPublisherWithOutbox(
             IOutboxRepository outboxRepository,
+            IOptions<CDCConfiguration> cdcConfigurationOptions,
             ILogger<CDCEventPublisherWithOutbox> logger)
         {
             _outboxRepository = outboxRepository;
             _logger = logger;
+            _cdcConfiguration = cdcConfigurationOptions.Value;
         }
 
         public async Task PublishAsync<TData>(CDCEvent<TData> cdcEvent, CancellationToken cancellationToken = default)
@@ -97,8 +99,15 @@ namespace WirexApp.Infrastructure.CDC
             await PublishAsync(cdcEvent, cancellationToken);
         }
 
-        private static string GetTopicName(string entityType)
+        private string GetTopicName(string entityType)
         {
+            if (_cdcConfiguration.TopicMappings.TryGetValue(entityType, out var topic) && !string.IsNullOrEmpty(topic))
+            {
+                return topic;
+            }
+
+            _logger.LogWarning("No topic mapping found for entity type {EntityType} in CDCConfiguration. Using default naming convention 'cdc.{{entityType}}'.", entityType);
+            const string TopicPrefix = "cdc.";
             return $"{TopicPrefix}{entityType.ToLowerInvariant()}";
         }
     }

@@ -9,14 +9,11 @@ namespace WirexApp.Tests.Unit.Domain
         [Fact]
         public void Of_ShouldCreateMoneyValue_WithValidValues()
         {
-            // Arrange
             var amount = 100.50m;
             var currency = "USD";
 
-            // Act
             var moneyValue = MoneyValue.Of(amount, currency);
 
-            // Assert
             moneyValue.Should().NotBeNull();
             moneyValue.Value.Should().Be(amount);
             moneyValue.Currency.Should().Be(currency);
@@ -30,14 +27,11 @@ namespace WirexApp.Tests.Unit.Domain
             decimal amount2, string currency2,
             decimal expected)
         {
-            // Arrange
             var money1 = MoneyValue.Of(amount1, currency1);
             var money2 = MoneyValue.Of(amount2, currency2);
 
-            // Act
             var result = money1 + money2;
 
-            // Assert
             result.Value.Should().Be(expected);
             result.Currency.Should().Be(currency1);
         }
@@ -45,33 +39,44 @@ namespace WirexApp.Tests.Unit.Domain
         [Fact]
         public void OperatorPlus_ShouldThrowException_WhenCurrenciesDiffer()
         {
-            // Arrange
             var money1 = MoneyValue.Of(100, "USD");
             var money2 = MoneyValue.Of(100, "EUR");
 
-            // Act
             var act = () => money1 + money2;
 
-            // Assert
             act.Should().Throw<ArgumentException>();
         }
 
         [Theory]
         [InlineData(5, 100, "USD", 500)]
         [InlineData(2, 50.50, "EUR", 101)]
-        public void OperatorMultiply_ShouldMultiplyMoneyValue_ByNumber(
+        public void OperatorMultiply_ShouldMultiplyMoneyValue_ByInteger(
             int multiplier,
             decimal amount,
             string currency,
             decimal expected)
         {
-            // Arrange
             var money = MoneyValue.Of(amount, currency);
 
-            // Act
             var result = multiplier * money;
 
-            // Assert
+            result.Value.Should().Be(expected);
+            result.Currency.Should().Be(currency);
+        }
+
+        [Theory]
+        [InlineData(2.5, 100, "USD", 250)]
+        [InlineData(0.5, 50, "EUR", 25)]
+        public void OperatorMultiply_ShouldMultiplyMoneyValue_ByDecimal(
+            decimal multiplier,
+            decimal amount,
+            string currency,
+            decimal expected)
+        {
+            var money = MoneyValue.Of(amount, currency);
+
+            var result = multiplier * money;
+
             result.Value.Should().Be(expected);
             result.Currency.Should().Be(currency);
         }
@@ -79,22 +84,69 @@ namespace WirexApp.Tests.Unit.Domain
         [Fact]
         public void Equals_ShouldReturnTrue_ForSameValues()
         {
-            // Arrange
             var money1 = MoneyValue.Of(100, "USD");
             var money2 = MoneyValue.Of(100, "USD");
 
-            // Act & Assert
+
             money1.Equals(money2).Should().BeTrue();
+        }
+
+        [Fact]
+        public void Of_ShouldCreateMoneyValue_FromAnotherMoneyValue()
+        {
+            var originalMoney = MoneyValue.Of(100, "USD");
+
+            var newMoney = MoneyValue.Of(originalMoney);
+
+            newMoney.Should().NotBeNull();
+            newMoney.Value.Should().Be(originalMoney.Value);
+            newMoney.Currency.Should().Be(originalMoney.Currency);
+            newMoney.Should().NotBeSameAs(originalMoney); 
+        }
+
+        [Fact]
+        public void Sum_ShouldCalculateTotal_ForListOfMoneyValues()
+        {
+            var moneyValues = new[]
+            {
+                MoneyValue.Of(100, "USD"),
+                MoneyValue.Of(50, "USD"),
+                MoneyValue.Of(25, "USD")
+            };
+
+            var sum = moneyValues.Sum();
+
+            sum.Should().NotBeNull();
+            sum.Value.Should().Be(175);
+            sum.Currency.Should().Be("USD");
+        }
+
+        [Fact]
+        public void Sum_ShouldCalculateTotal_ForListOfCustomObjects()
+        {
+    
+            var items = new[]
+            {
+                new { Price = MoneyValue.Of(10, "EUR") },
+                new { Price = MoneyValue.Of(20, "EUR") },
+                new { Price = MoneyValue.Of(30, "EUR") }
+            };
+
+
+            var sum = items.Sum(x => x.Price);
+
+            sum.Should().NotBeNull();
+            sum.Value.Should().Be(60);
+            sum.Currency.Should().Be("EUR");
         }
 
         [Fact]
         public void Equals_ShouldReturnFalse_ForDifferentValues()
         {
-            // Arrange
             var money1 = MoneyValue.Of(100, "USD");
             var money2 = MoneyValue.Of(200, "USD");
 
-            // Act & Assert
+   
             money1.Equals(money2).Should().BeFalse();
         }
     }

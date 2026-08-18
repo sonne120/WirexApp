@@ -31,7 +31,6 @@ namespace WirexApp.Infrastructure.UnitOfWork
             }
             catch
             {
-                // In case of error, UnitOfWork will be disposed without committing
                 throw;
             }
         }

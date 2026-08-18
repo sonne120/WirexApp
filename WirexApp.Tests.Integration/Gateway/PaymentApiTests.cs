@@ -18,20 +18,20 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task HealthCheck_ShouldReturnOk()
         {
-            // Act
+      
             var response = await _client.GetAsync("/health");
 
-            // Assert
+         
             response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Fact]
         public async Task GetAllPayments_ShouldReturnOkWithArray()
         {
-            // Act
+     
             var response = await _client.GetAsync("/api/payments");
 
-            // Assert
+     
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var payments = await response.Content.ReadFromJsonAsync<List<PaymentDto>>();
@@ -66,19 +66,19 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task CreatePayment_ShouldReturnBadRequest_WhenInvalidAmount()
         {
-            // Arrange
+         
             var userId = Guid.NewGuid();
             var request = new
             {
                 sourceCurrency = 1,
                 targetCurrency = 2,
-                sourceValue = -100.00 // Invalid negative amount
+                sourceValue = -100.00 
             };
 
-            // Act
+        
             var response = await _client.PostAsJsonAsync($"/api/payments/user/{userId}", request);
 
-            // Assert
+      
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
             var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
@@ -89,19 +89,17 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task CreatePayment_ShouldReturnBadRequest_WhenSameCurrency()
         {
-            // Arrange
             var userId = Guid.NewGuid();
             var request = new
             {
-                sourceCurrency = 1, // USD
-                targetCurrency = 1, // USD (same currency - critical business rule!)
+                sourceCurrency = 1, 
+                targetCurrency = 1, 
                 sourceValue = 100.00
             };
 
-            // Act
             var response = await _client.PostAsJsonAsync($"/api/payments/user/{userId}", request);
 
-            // Assert
+
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
             var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
@@ -112,7 +110,6 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task CreatePayment_ShouldReturnBadRequest_WhenZeroAmount()
         {
-            // Arrange
             var userId = Guid.NewGuid();
             var request = new
             {
@@ -121,10 +118,10 @@ namespace WirexApp.Tests.Integration.Gateway
                 sourceValue = 0.00 // Zero amount
             };
 
-            // Act
+
             var response = await _client.PostAsJsonAsync($"/api/payments/user/{userId}", request);
 
-            // Assert
+
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
             var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
@@ -134,13 +131,12 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task GetPaymentById_ShouldReturnNotFound_WhenPaymentDoesNotExist()
         {
-            // Arrange
+    
             var nonExistentId = Guid.NewGuid();
 
-            // Act
             var response = await _client.GetAsync($"/api/payments/{nonExistentId}");
 
-            // Assert
+    
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
             var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
@@ -151,10 +147,9 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task GetPaymentStats_ShouldReturnOkWithValidStructure()
         {
-            // Act
+
             var response = await _client.GetAsync("/api/payments/stats");
 
-            // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var stats = await response.Content.ReadFromJsonAsync<PaymentStatsDto>();
@@ -168,13 +163,10 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task GetPaymentsByUser_ShouldReturnOkWithArray()
         {
-            // Arrange
             var userId = Guid.NewGuid();
 
-            // Act
             var response = await _client.GetAsync($"/api/payments/user/{userId}");
 
-            // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
             var payments = await response.Content.ReadFromJsonAsync<List<PaymentDto>>();
@@ -185,7 +177,6 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task CreateAndRetrievePayment_ShouldReturnCreatedPayment()
         {
-            // Arrange
             var userId = Guid.NewGuid();
             var request = new
             {
@@ -194,7 +185,6 @@ namespace WirexApp.Tests.Integration.Gateway
                 sourceValue = 150.00
             };
 
-            // Act - Create Payment
             var createResponse = await _client.PostAsJsonAsync($"/api/payments/user/{userId}", request);
 
             // Assert - Creation
@@ -206,7 +196,7 @@ namespace WirexApp.Tests.Integration.Gateway
             // Give the system time to process (in real scenario, CDC would sync)
             await Task.Delay(100);
 
-            // Act - Retrieve by User
+            // Act - Retrieval
             var getResponse = await _client.GetAsync($"/api/payments/user/{userId}");
 
             // Assert - Retrieval
@@ -219,7 +209,6 @@ namespace WirexApp.Tests.Integration.Gateway
         [Fact]
         public async Task CreatePayment_WithInvalidGuid_ShouldHandleGracefully()
         {
-            // Arrange
             var invalidUserId = "not-a-valid-guid";
             var request = new
             {
@@ -228,11 +217,9 @@ namespace WirexApp.Tests.Integration.Gateway
                 sourceValue = 100.00
             };
 
-            // Act
             var response = await _client.PostAsJsonAsync($"/api/payments/user/{invalidUserId}", request);
 
-            // Assert
-            // Should either return 400 BadRequest or handle conversion internally
+     
             response.StatusCode.Should().BeOneOf(HttpStatusCode.BadRequest, HttpStatusCode.Accepted);
         }
     }
