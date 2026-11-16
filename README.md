@@ -4,6 +4,9 @@
 ![Forks](https://img.shields.io/github/forks/sonne120/WirexApp)
 ![Last commit](https://img.shields.io/github/last-commit/sonne120/WirexApp)
 ![Repo size](https://img.shields.io/github/repo-size/sonne120/WirexApp)
+[![gateway](https://img.shields.io/badge/ghcr.io-wirexapp--gateway-2496ED?logo=docker&logoColor=white)](https://github.com/sonne120/WirexApp/pkgs/container/wirexapp-gateway)
+[![read-service](https://img.shields.io/badge/ghcr.io-wirexapp--read--service-2496ED?logo=docker&logoColor=white)](https://github.com/sonne120/WirexApp/pkgs/container/wirexapp-read-service)
+[![write-service](https://img.shields.io/badge/ghcr.io-wirexapp--write--service-2496ED?logo=docker&logoColor=white)](https://github.com/sonne120/WirexApp/pkgs/container/wirexapp-write-service)
 
 # WirexApp
 
