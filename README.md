@@ -4,6 +4,9 @@
 ![Forks](https://img.shields.io/github/forks/sonne120/WirexApp)
 ![Last commit](https://img.shields.io/github/last-commit/sonne120/WirexApp)
 ![Repo size](https://img.shields.io/github/repo-size/sonne120/WirexApp)
+[![Release](https://img.shields.io/github/v/release/sonne120/WirexApp)](https://github.com/sonne120/WirexApp/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/sonne120/WirexApp/total)](https://github.com/sonne120/WirexApp/releases)
+[![Latest](https://img.shields.io/github/downloads/sonne120/WirexApp/latest/total)](https://github.com/sonne120/WirexApp/releases/latest)
 
 # WirexApp
 
