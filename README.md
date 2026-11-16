@@ -3,7 +3,7 @@
 ![Stars](https://img.shields.io/github/stars/sonne120/WirexApp)
 ![Forks](https://img.shields.io/github/forks/sonne120/WirexApp)
 ![Last commit](https://img.shields.io/github/last-commit/sonne120/WirexApp)
-![Repo size](https://img.shields.io/github/repo-size/sonne120/WirexApp
+![Repo size](https://img.shields.io/github/repo-size/sonne120/WirexApp)
 
 # WirexApp
 
